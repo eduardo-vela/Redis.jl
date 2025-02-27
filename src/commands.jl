@@ -394,12 +394,50 @@ end
 
 # Basic stream commands
 
-function xadd(conn::RedisConnection, key ::AbstractString, field ::AbstractString,value ::AbstractString)
-    response = execute_command(conn, flatten_command("xadd",key, "*", field, value))
+# function xadd(conn::RedisConnection, key::AbstractString, field::AbstractString, value::AbstractString)
+#     response = execute_command(conn, flatten_command("xadd",key, "*", field, value))
+#     return response
+# end
+
+# function xadd(conn::RedisConnection, key::AbstractString, field::AbstractString, value::AbstractString, id::Int64)
+#     response = execute_command(conn, flatten_command("xadd",key, id, field, value))
+#     return response
+# end
+
+function xadd(conn::RedisConnection, key::AbstractString, field::AbstractString, value::AbstractString; 
+              id::Union{Int64,String}="*", maxlen::Union{Int64,Nothing}=nothing, minid::Union{Int64,Nothing}=nothing, almost_exact::Bool=false,
+              nomkstream::Bool=false)
+    stream_command = []
+    push!(stream_command, "xadd")
+    push!(stream_command, key)
+    if nomkstream 
+        push!(stream_command, "nomkstream")
+    end    
+    if !isnothing(maxlen) && maxlen>0
+        push!(stream_command, "maxlen")
+        if !almost_exact
+            push!(stream_command, "=")
+        else
+            push!(stream_command, "~")
+        end
+        push!(stream_command, maxlen)
+    elseif !isnothing(minid) 
+        push!(stream_command, "minid")
+        if !almost_exact
+            push!(stream_command, "=")
+        else
+            push!(stream_command, "~")
+        end
+        push!(stream_command, minid)
+    end
+    push!(stream_command, id)
+    push!(stream_command, field)
+    push!(stream_command, value)
+    response = execute_command(conn, flatten_command(stream_command))
     return response
 end
 
-function xinfo_stream(conn::RedisConnection,key ::AbstractString,full::Bool=false,count::Union{Int64, Nothing} = nothing)::Vector{Any}
+function xinfo_stream(conn::RedisConnection, key::AbstractString, full::Bool=false, count::Union{Int64, Nothing} = nothing)::Vector{Any}
     stream_command = []
     push!(stream_command, "xinfo")
     push!(stream_command, "stream")
@@ -420,6 +458,8 @@ function xinfo_stream(conn::RedisConnection,key ::AbstractString,full::Bool=fals
     end
     return response
 end
+
+
 
 @redisfunction "xlen" Integer key
 @redisfunction "xdel" Integer key id 
