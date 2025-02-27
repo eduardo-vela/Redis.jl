@@ -59,6 +59,9 @@ export sentinel_masters, sentinel_master, sentinel_slaves, sentinel_getmasteradd
 # TODO: add more, consider puuting these in separate constants.jl
 export REDIS_PERSISTENT_KEY, REDIS_EXPIRED_KEY
 
+# Stream commands
+export xadd,xlen,xdel,xinfo_stream,xinfo_groups
+
 include("exceptions.jl")
 include("transport/transport.jl")
 include("connection.jl")

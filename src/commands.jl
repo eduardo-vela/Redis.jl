@@ -392,6 +392,40 @@ function exec(conn::TransactionConnection)
     response
 end
 
+# Basic stream commands
+
+function xadd(conn::RedisConnection, key ::AbstractString, field ::AbstractString,value ::AbstractString)
+    response = execute_command(conn, flatten_command("xadd",key, "*", field, value))
+    return response
+end
+
+function xinfo_stream(conn::RedisConnection,key ::AbstractString,full::Bool=false,count::Union{Int64, Nothing} = nothing)::Vector{Any}
+    stream_command = []
+    push!(stream_command, "xinfo")
+    push!(stream_command, "stream")
+    push!(stream_command, key)
+
+    if full
+        push!(stream_command, "full")
+    end
+    if !isnothing(count) && count >= 0
+        push!(stream_command, "count")
+        push!(stream_command, count)
+    end
+    response = []
+    try 
+        response = execute_command(conn, flatten_command(stream_command))
+    catch
+        response = []
+    end
+    return response
+end
+
+@redisfunction "xlen" Integer key
+@redisfunction "xdel" Integer key id 
+
+
+
 ###############################################################
 # The following Redis commands can be typecast to Julia structs
 ###############################################################
