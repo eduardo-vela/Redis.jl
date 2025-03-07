@@ -459,8 +459,6 @@ function xinfo_stream(conn::RedisConnection, key::AbstractString, full::Bool=fal
     return response
 end
 
-
-
 @redisfunction "xlen" Integer key
 @redisfunction "xdel" Integer key id 
 
